@@ -1,6 +1,4 @@
-# IDX-Exchange-Summer-2026-DS-Intern
-
-# California Property Close Price Prediction
+# IDX-Exchange-Summer-2026-DS-Intern: California Property Close Price Prediction
 
 ## Project Overview
 
