@@ -37,4 +37,8 @@ The final deliverables include data preprocessing scripts, model training and ev
 - Filtered the data to residential single-family properties.
 - Explored the distribution of `ClosePrice`, living area, bedrooms, bathrooms, and lot size.
 - Checked missing values and basic data quality issues.
-- Created the initial EDA notebook: `01_exploration.ipynb`.
+- Documentation:
+  - [Week2 Summary](/Week2/week2_summary.md)
+- Codes:
+  - [Week2 Notebook](/Week2/01_exploration.ipynb)
+    
