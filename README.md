@@ -65,9 +65,7 @@ The final deliverables include data preprocessing scripts, model training and ev
 - Test rows: `12,012`
 
 **Documentation:**
-
 - [Week3 Summary](/week3/week3.md)
 
 **Codes:**
-
 - [Week3 Notebook](/week3/02_preprocessing.ipynb)
