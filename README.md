@@ -60,8 +60,8 @@ The final deliverables include data preprocessing scripts, model training and ev
 
 **Final preprocessing output:**
 
-- Quality-cleaned rows: `174,909`
-- Training rows: `123,469`
+- Quality-cleaned rows: `181,185`
+- Training rows: `129,745`
 - Test rows: `12,012`
 
 **Documentation:**
