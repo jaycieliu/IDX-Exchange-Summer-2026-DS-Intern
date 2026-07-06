@@ -37,8 +37,37 @@ The final deliverables include data preprocessing scripts, model training and ev
 - Filtered the data to residential single-family properties.
 - Explored the distribution of `ClosePrice`, living area, bedrooms, bathrooms, and lot size.
 - Checked missing values and basic data quality issues.
-- Documentation:
+  
+**Documentation:**
   - [Week2 Summary](/week2/week2.md)
-- Codes:
+    
+**Codes:**
   - [Week2 Notebook](/week2/01_exploration.ipynb)
     
+## Week 3 Summary: Data Preprocessing
+
+**Week 3 deliverables completed:**
+
+- Combined the team's preprocessing work into one final notebook.
+- Loaded and combined CRMLS sold files from January 2025 through May 2026.
+- Filtered the dataset to residential single-family properties.
+- Handled missing values, duplicates, binary fields, categorical encoding, and numerical quality issues.
+- Added numerical flags for invalid or unusual property records.
+- Created a time-based train/test split:
+  - Train: `2025-05` to `2026-04`
+  - Test: `2026-05`
+- Exported quality-cleaned and model-ready CSV files for future modeling.
+
+**Final preprocessing output:**
+
+- Quality-cleaned rows: `174,909`
+- Training rows: `123,469`
+- Test rows: `12,012`
+
+**Documentation:**
+
+- [Week3 Summary](/week3/week3.md)
+
+**Codes:**
+
+- [Week3 Notebook](/week3/02_preprocessing.ipynb)
