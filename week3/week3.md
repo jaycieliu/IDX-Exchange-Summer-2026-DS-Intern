@@ -29,13 +29,13 @@ The target analysis population remained restricted to:
 
 ## Key Outputs
 
-- Raw data loaded: 352,354 rows.
-- Filtered Residential + SingleFamilyResidence rows: 175,188 rows.
-- Duplicate `ListingKey` rows removed: 119 rows.
-- Rows removed by strict numerical rules: 143 rows.
+- Raw data loaded: 363,970 rows.
+- Filtered Residential + SingleFamilyResidence rows: 181,482 rows.
+- Duplicate `ListingKey` rows removed: 133 rows.
+- Rows removed by strict numerical rules: 147 rows.
 - Rows removed for missing coordinates: 17 rows.
-- Final quality-cleaned dataset: 174,909 rows.
-- Model-ready training set: 123,469 rows.
+- Final quality-cleaned dataset: 181,185 rows.
+- Model-ready training set: 129,745 rows.
 - Model-ready test set: 12,012 rows.
 - Test month: `2026-05`.
 - Training window: `2025-05` through `2026-04`.
