@@ -69,3 +69,42 @@ The final deliverables include data preprocessing scripts, model training and ev
 
 **Codes:**
 - [Week3 Notebook](/week3/02_preprocessing.ipynb)
+
+
+## Week 4 Summary: Baseline Model
+
+**Week 4 deliverables completed:**
+
+- Built the first baseline Linear Regression model for predicting `ClosePrice`.
+- Used the Week 3 chronological train/test split:
+  - Train: `2025-05` to `2026-04`
+  - Test: `2026-05`
+- Excluded leakage features:
+  - `ListPrice`
+  - `OriginalListPrice`
+  - `ClosePrice_to_ListPrice_ratio`
+- Checked feature correlation and multicollinearity before modeling.
+- Tested multiple non-leaky X feature bundles.
+- Compared models using:
+  - R²
+  - MAPE
+  - MdAPE
+- Selected the best baseline X bundle based on test-set performance.
+
+**Best baseline model:**
+
+- Selected model: `Model 5 - Expanded Non-Leaky Bundle`
+- Test R²: `0.537`
+- Test MAPE: `0.496`
+- Test MdAPE: `0.330`
+
+**Decision:**
+
+- Model 5 was selected as the Week 4 baseline because it had the strongest test-set R² and lowest error metrics.
+- The Linear Regression baseline is useful as a benchmark, but the error level is still too high for final pricing decisions.
+
+**Documentation:**
+- [Week4 Summary](/week4/week4.md)
+
+**Codes:**
+- [Week4 Notebook](/notebooks/03_baseline_model.ipynb)
