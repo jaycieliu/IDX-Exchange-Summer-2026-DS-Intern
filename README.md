@@ -108,3 +108,51 @@ The final deliverables include data preprocessing scripts, model training and ev
 
 **Codes:**
 - [Week4 Notebook](/notebooks/03_baseline_model.ipynb)
+
+## Week 5 Summary: Additional Models
+
+**Week 5 deliverables completed:**
+
+- Built additional regression models for predicting `ClosePrice`.
+- Used the same modeling setup as Week 4:
+  - Train: `2025-04` to `2026-03`
+  - Validation: `2026-04`
+  - Test: `2026-05`
+- Reused the Week 4 `X5_full_non_leaky` feature set.
+- Compared three model families:
+  - Linear Regression baseline
+  - Decision Tree Regressor
+  - Random Forest Regressor
+- Tuned tree-model hyperparameters using validation data only.
+- Selected the final model based on validation performance:
+  - R²
+  - MAPE
+  - MdAPE
+- Tested the locked final model once on the May 2026 test set.
+- Analyzed model behavior using:
+  - price-segment errors
+  - error distribution
+  - feature importance
+  - actual vs predicted plot
+
+**Best additional model:**
+
+- Selected model: `Random Forest`
+- Parameters: `n_estimators=50, max_depth=22, min_samples_leaf=10, max_features=0.7`
+- Test R²: `0.872`
+- Test MAPE: `0.131`
+- Test MdAPE: `0.085`
+
+**Decision:**
+
+- Random Forest was selected because it had the strongest validation MdAPE and materially improved test performance compared with the Week 4 Linear Regression baseline.
+- The model is useful for directional pricing support and valuation triage.
+- The model should not be used for automated final pricing because segment-level and tail errors remain meaningful.
+
+**Documentation:**
+
+- [Week 5 Summary](week5/week5.md)
+
+**Code:**
+
+- [Week 5 Notebook](notebooks/04_model_comparison.ipynb)
