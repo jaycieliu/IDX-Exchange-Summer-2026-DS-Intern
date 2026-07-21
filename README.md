@@ -113,8 +113,11 @@ The final deliverables include data preprocessing scripts, model training and ev
 
 **Week 5 deliverables completed:**
 
+- Revised Week 2-4 documentation and methodology summaries.
+- Updated Week 3 preprocessing with school-district enrichment and corrected validation/test split.
+- Updated Week 4 Linear Regression baseline to use validation for model selection.
 - Built additional regression models for predicting `ClosePrice`.
-- Used the same modeling setup as Week 4:
+- Used the same locked modeling setup as Week 4:
   - Train: `2025-04` to `2026-03`
   - Validation: `2026-04`
   - Test: `2026-05`
@@ -156,3 +159,22 @@ The final deliverables include data preprocessing scripts, model training and ev
 **Code:**
 
 - [Week 5 Notebook](notebooks/04_model_comparison.ipynb)
+
+
+- # Week 3-4 Revision Summary
+## Week 3 - Preprocessing
+
+- Rebuilt preprocessing from raw CRMLS data instead of combining teammate code blindly.
+- Documented filtering, duplicate handling, missing-value treatment, and outlier flags.
+- Added train-only imputation, scaling, frequency encoding, and missingness indicators.
+- Added official Unified School District relative/geographic variables.
+- Set validation to `2026-04` and final test to `2026-05`.
+
+## Week 4 - Linear Baseline
+
+- Refactored baseline modeling into train, validation, and test phases.
+- Used validation, not test, to select the training window and X set.
+- Compared five X sets across five training windows with `R2`, `MAPE`, and `MdAPE`.
+- Selected `X5_full_non_leaky` with the 12-month window as the locked Linear Regression baseline.
+- Reserved May 2026 test for final one-time baseline evaluation.
+
