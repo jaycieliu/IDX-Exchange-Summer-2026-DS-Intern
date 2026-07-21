@@ -161,8 +161,8 @@ The final deliverables include data preprocessing scripts, model training and ev
 - [Week 5 Notebook](notebooks/04_model_comparison.ipynb)
 
 
-- # Week 3-4 Revision Summary
-## Week 3 - Preprocessing
+## Week 3-4 Revision Summary
+### Week 3 - Preprocessing
 
 - Rebuilt preprocessing from raw CRMLS data instead of combining teammate code blindly.
 - Documented filtering, duplicate handling, missing-value treatment, and outlier flags.
@@ -170,7 +170,7 @@ The final deliverables include data preprocessing scripts, model training and ev
 - Added official Unified School District relative/geographic variables.
 - Set validation to `2026-04` and final test to `2026-05`.
 
-## Week 4 - Linear Baseline
+### Week 4 - Linear Baseline
 
 - Refactored baseline modeling into train, validation, and test phases.
 - Used validation, not test, to select the training window and X set.
