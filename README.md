@@ -178,3 +178,87 @@ The final deliverables include data preprocessing scripts, model training and ev
 - Selected `X5_full_non_leaky` with the 12-month window as the locked Linear Regression baseline.
 - Reserved May 2026 test for final one-time baseline evaluation.
 
+## Week 6 Summary: Feature Engineering & Pipeline Selection
+
+**Week 6 deliverables completed:**
+
+- Standardized the final chronological setup:
+  - Train: `2025-02` to `2026-04`
+  - Validation: `2026-05`
+  - Test: `2026-06`
+- Compared 13 complete candidate pipelines built from fixed and engineered feature sets.
+- Tested school-district context, property ratios, log transformations, amenity indicators, and selector variants.
+- Fit imputation, scaling, and frequency encoding on training data only.
+- Used May validation to select the complete pipeline before opening June.
+- Evaluated both `June in-range` and `Full June`:
+  - `June in-range` is the comparable benchmark using training-defined limits.
+  - `Full June` is an operational robustness check only.
+- Saved the locked pipeline and reproducibility metadata.
+
+**Selected Week 6 pipeline:**
+
+- Pipeline: `Random Forest`
+- May in-range R2: `0.876`
+- May in-range MAPE: `0.129`
+- May in-range MdAPE: `0.082`
+- June in-range R2: `0.877`
+- June in-range MAPE: `0.129`
+- June in-range MdAPE: `0.083`
+
+**Decision:**
+
+- The expanded X6 engineered features did not produce a meaningful validation improvement over `X5_fixed`.
+- School-district fields provided a small signal but require rolling-month confirmation and geospatial QA.
+- The Week 6 pipeline remains suitable for retrospective valuation QA and manual-review triage, not autonomous pricing.
+
+**Documentation:**
+
+- [Week 6 Report](week6/week6_final_report_interpretation.md)
+
+**Code:**
+
+- [Week 6 Notebook](notebooks/05_feature_engineering_pipeline_selection.ipynb)
+- [Week 6 Pipeline Module](week6/week6_model_pipeline.py)
+
+## Week 7 Summary: Advanced Models
+
+**Week 7 deliverables completed:**
+
+- Reused the Week 3 quality-cleaned data and the Week 6 chronological modeling window.
+- Removed missingness indicators from modeling while retaining train-only frequency encoding.
+- Optimized the linear benchmark through separate OLS, Ridge, and Lasso X-set and penalty searches.
+- Tuned Decision Tree and Random Forest feature sets and structural hyperparameters.
+- Compared XGBoost, LightGBM, and CatBoost using:
+  - shallow depths from `3` to `6`
+  - early stopping
+  - row and feature subsampling
+  - minimum child-size controls
+  - L1/L2 regularization where supported
+- Evaluated 42 boosting configurations on May in-range validation only.
+- Locked the final model before the one-time June evaluation.
+
+**Selected Week 7 model:**
+
+- Model: `XGBoost`
+- May in-range R2: `0.908`
+- May in-range MAPE: `0.122`
+- May in-range MdAPE: `0.084`
+- June in-range R2: `0.911`
+- June in-range MAPE: `0.122`
+- June in-range MdAPE: `0.085`
+
+**Decision:**
+
+- XGBoost was selected using a May-only balanced promotion rule rather than MdAPE alone.
+- Compared with Random Forest, XGBoost materially improved R2 and reduced the apparent train-to-May gap while keeping MAPE and MdAPE penalties inside explicit tolerances.
+- June confirmed the stronger R2 and dollar-error performance; Random Forest remains a monitoring benchmark for median percentage error.
+- The final model supports pricing review and valuation triage. Tail-risk and unusual properties still require manual comparable-sale analysis.
+
+**Documentation:**
+
+- [Week 7 Advanced Models Report](week7/05_advanced_models.md)
+
+**Code:**
+
+- [Week 7 Notebook](week7/05_advanced_models.ipynb)
+
