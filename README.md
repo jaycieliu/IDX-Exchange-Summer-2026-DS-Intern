@@ -260,5 +260,5 @@ The final deliverables include data preprocessing scripts, model training and ev
 
 **Code:**
 
-- [Week 7 Notebook](week7/05_advanced_models.ipynb)
+- [Week 7 Notebook](week7/05_advanced_models_updated.ipynb)
 
