@@ -1,264 +1,237 @@
-# IDX-Exchange-DS-Intern: California Property Close Price Prediction
+# California Residential Close Price Prediction
 
-## Project Overview
+## Abstract
 
-This repository contains the internship project for predicting California residential property close prices using historical CRMLS sold property data.
+Use the final XGBoost model for pricing review and valuation triage, not automatic pricing. On the primary June 2026 test set, the model achieved:
 
-The goal of this project is to build a machine learning workflow that can predict a property's final sales price, also known as `ClosePrice`, based on property-level characteristics such as living area, bedrooms, bathrooms, lot size, location-related fields, and other available listing attributes.
+| Population | Rows | R2 | MAPE | MdAPE |
+|---|---:|---:|---:|---:|
+| June test set | 12,566 | 0.911 | 12.17% | 8.46% |
+| Full June robustness | 12,851 | 0.678 | 13.81% | 8.67% |
 
-For this project, the analysis focuses only on:
+Decision implication: the model is useful for flagging pricing reasonableness on typical homes, especially middle-price segments. Low-price outliers, luxury homes, and unusual properties still require manual comparable-sale review.
+
+## Business Objective
+
+Predict `ClosePrice` for California CRMLS sold single-family residential properties so real estate teams can support:
+
+- pricing review before or after close,
+- listing strategy and valuation QA,
+- geographic and price-segment demand allocation,
+- manual-review prioritization for high-risk properties.
+
+Every modeling step is evaluated against decision usefulness, not only technical score improvement.
+
+## Dataset Source
+
+Primary source: CRMLS sold property exports stored locally under:
+
+- `data/raw data/CRMLSSoldYYYYMM.csv`
+- `data/california/CRMLSSoldYYYYMM.csv`
+
+External enrichment:
+
+- `data/external/california_school_district_areas_2025_26.geojson`
+
+Scope restriction:
 
 - `PropertyType = Residential`
 - `PropertySubType = SingleFamilyResidence`
-- California CRMLS sold property records
+- California sold records only
+- target variable: `ClosePrice`
 
-The final deliverables include data preprocessing scripts, model training and evaluation code, documentation, and a final presentation summarizing the methodology, findings, model performance, and next steps.
+The final cleaned modeling dataset is:
 
----
+- `outputs/week3_preprocessing/crmls_sfr_quality_cleaned_202501_202606.csv`
 
-## Week 1 Summary: Orientation & Setup
+## Preprocessing
 
-**Week 1 deliverables completed:**
+The preprocessing workflow is implemented in `notebooks/02_preprocessing.ipynb` and supported by `scripts/build_week3_preprocessing_deliverable.py`.
 
-- Reviewed the task prompt and project objective.
-- Set up Python, Git, Jupyter Notebook, and the local project environment.
-- Connected to the FTP server through FileZilla.
-- Located and downloaded CRMLS sold property files.
-- Reviewed the metadata file to understand key feature definitions.
-- Confirmed dataset access and prepared initial notes on important columns.
-
-
-## Week 2 Summary: Data Exploration
-
-**Week 2 deliverables completed:**
-
-- Loaded at least six months of CRMLS sold data into pandas.
-- Combined multiple monthly files into one working dataset.
-- Filtered the data to residential single-family properties.
-- Explored the distribution of `ClosePrice`, living area, bedrooms, bathrooms, and lot size.
-- Checked missing values and basic data quality issues.
-  
-**Documentation:**
-  - [Week2 Summary](/week2/week2.md)
-    
-**Codes:**
-  - [Week2 Notebook](/week2/01_exploration.ipynb)
-    
-## Week 3 Summary: Data Preprocessing
-
-**Week 3 deliverables completed:**
-
-- Combined the team's preprocessing work into one final notebook.
-- Loaded and combined CRMLS sold files from January 2025 through May 2026.
-- Filtered the dataset to residential single-family properties.
-- Handled missing values, duplicates, binary fields, categorical encoding, and numerical quality issues.
-- Added numerical flags for invalid or unusual property records.
-- Created a time-based train/test split:
-  - Train: `2025-05` to `2026-04`
-  - Test: `2026-05`
-- Exported quality-cleaned and model-ready CSV files for future modeling.
-
-**Final preprocessing output:**
-
-- Quality-cleaned rows: `181,185`
-- Training rows: `129,745`
-- Test rows: `12,012`
-
-**Documentation:**
-- [Week3 Summary](/week3/week3.md)
+Main steps:
 
-**Codes:**
-- [Week3 Notebook](/week3/02_preprocessing.ipynb)
-
+1. Load and combine monthly CRMLS sold files.
+2. Filter to Residential / SingleFamilyResidence records.
+3. Parse dates and create `close_month`.
+4. Validate `ClosePrice` and key property fields.
+5. Handle missing values with train-fitted logic instead of blind row removal.
+6. Create quality flags for unusual or invalid values.
+7. Add school-district enrichment.
+8. Build chronological train, validation, and test datasets.
 
-## Week 4 Summary: Baseline Model
+Final modeling window:
 
-**Week 4 deliverables completed:**
+| Split | Period | Purpose |
+|---|---|---|
+| Train | 2025-02 to 2026-04 | Fit preprocessing and models |
+| Validation | 2026-05 | Select model / hyperparameters |
+| Test | 2026-06 | Final locked evaluation |
 
-- Built the first baseline Linear Regression model for predicting `ClosePrice`.
-- Used the Week 3 chronological train/test split:
-  - Train: `2025-05` to `2026-04`
-  - Test: `2026-05`
-- Excluded leakage features:
-  - `ListPrice`
-  - `OriginalListPrice`
-  - `ClosePrice_to_ListPrice_ratio`
-- Checked feature correlation and multicollinearity before modeling.
-- Tested multiple non-leaky X feature bundles.
-- Compared models using:
-  - R²
-  - MAPE
-  - MdAPE
-- Selected the best baseline X bundle based on test-set performance.
-
-**Best baseline model:**
-
-- Selected model: `Model 5 - Expanded Non-Leaky Bundle`
-- Test R²: `0.537`
-- Test MAPE: `0.496`
-- Test MdAPE: `0.330`
-
-**Decision:**
-
-- Model 5 was selected as the Week 4 baseline because it had the strongest test-set R² and lowest error metrics.
-- The Linear Regression baseline is useful as a benchmark, but the error level is still too high for final pricing decisions.
-
-**Documentation:**
-- [Week4 Summary](/week4/week4.md)
-
-**Codes:**
-- [Week4 Notebook](/notebooks/03_baseline_model.ipynb)
-
-## Week 5 Summary: Additional Models
-
-**Week 5 deliverables completed:**
-
-- Revised Week 2-4 documentation and methodology summaries.
-- Updated Week 3 preprocessing with school-district enrichment and corrected validation/test split.
-- Updated Week 4 Linear Regression baseline to use validation for model selection.
-- Built additional regression models for predicting `ClosePrice`.
-- Used the same locked modeling setup as Week 4:
-  - Train: `2025-04` to `2026-03`
-  - Validation: `2026-04`
-  - Test: `2026-05`
-- Reused the Week 4 `X5_full_non_leaky` feature set.
-- Compared three model families:
-  - Linear Regression baseline
-  - Decision Tree Regressor
-  - Random Forest Regressor
-- Tuned tree-model hyperparameters using validation data only.
-- Selected the final model based on validation performance:
-  - R²
-  - MAPE
-  - MdAPE
-- Tested the locked final model once on the May 2026 test set.
-- Analyzed model behavior using:
-  - price-segment errors
-  - error distribution
-  - feature importance
-  - actual vs predicted plot
-
-**Best additional model:**
-
-- Selected model: `Random Forest`
-- Parameters: `n_estimators=50, max_depth=22, min_samples_leaf=10, max_features=0.7`
-- Test R²: `0.872`
-- Test MAPE: `0.131`
-- Test MdAPE: `0.085`
-
-**Decision:**
-
-- Random Forest was selected because it had the strongest validation MdAPE and materially improved test performance compared with the Week 4 Linear Regression baseline.
-- The model is useful for directional pricing support and valuation triage.
-- The model should not be used for automated final pricing because segment-level and tail errors remain meaningful.
-
-**Documentation:**
-
-- [Week 5 Summary](week5/week5.md)
-
-**Code:**
-
-- [Week 5 Notebook](notebooks/04_model_comparison.ipynb)
-
-
-## Week 3-4 Revision Summary
-### Week 3 - Preprocessing
+Important rule: imputation, scaling, frequency encoding, feature selection, and outlier bounds are fit on training data only, then applied unchanged to validation and test.
 
-- Rebuilt preprocessing from raw CRMLS data instead of combining teammate code blindly.
-- Documented filtering, duplicate handling, missing-value treatment, and outlier flags.
-- Added train-only imputation, scaling, frequency encoding, and missingness indicators.
-- Added official Unified School District relative/geographic variables.
-- Set validation to `2026-04` and final test to `2026-05`.
+## Features
 
-### Week 4 - Linear Baseline
+The final advanced-model feature set keeps interpretable price drivers:
 
-- Refactored baseline modeling into train, validation, and test phases.
-- Used validation, not test, to select the training window and X set.
-- Compared five X sets across five training windows with `R2`, `MAPE`, and `MdAPE`.
-- Selected `X5_full_non_leaky` with the 12-month window as the locked Linear Regression baseline.
-- Reserved May 2026 test for final one-time baseline evaluation.
+- property size: living area, lot size, bedroom and bathroom counts,
+- property structure: age, stories, garage and parking fields,
+- ratios: bed/bath ratio and living-area-to-lot ratio,
+- geography: city, ZIP, county, latitude, longitude,
+- school-district context: district name, county, locale, enrollment, area, density,
+- amenities: pool, view, fireplace, attached garage, new construction,
+- seasonality: close-month sine and cosine.
 
-## Week 6 Summary: Feature Engineering & Pipeline Selection
+Target-derived and sale-process leakage fields are excluded from modeling. Examples include `ClosePrice`, direct close-price ratios, and fields that would not be available at listing-time prediction.
 
-**Week 6 deliverables completed:**
+## Modeling Approach
 
-- Standardized the final chronological setup:
-  - Train: `2025-02` to `2026-04`
-  - Validation: `2026-05`
-  - Test: `2026-06`
-- Compared 13 complete candidate pipelines built from fixed and engineered feature sets.
-- Tested school-district context, property ratios, log transformations, amenity indicators, and selector variants.
-- Fit imputation, scaling, and frequency encoding on training data only.
-- Used May validation to select the complete pipeline before opening June.
-- Evaluated both `June in-range` and `Full June`:
-  - `June in-range` is the comparable benchmark using training-defined limits.
-  - `Full June` is an operational robustness check only.
-- Saved the locked pipeline and reproducibility metadata.
+The project started with an interpretable linear baseline, then tested tree-based models and gradient-boosted models. Selection used chronological validation before final testing to reduce look-ahead bias.
 
-**Selected Week 6 pipeline:**
+| Modeling step | Models | Selection basis | Best result |
+|---|---|---|---|
+| Linear baseline | Linear Regression | chronological test metrics | R2 0.641, MAPE 34.60%, MdAPE 25.13% |
+| Tree-based comparison | Linear Regression, Decision Tree, Random Forest | validation MdAPE, then MAPE, then R2 | Random Forest, test R2 0.878, MAPE 12.82%, MdAPE 8.32% |
+| Feature-engineered pipeline comparison | 13 full pipelines using fixed and engineered feature sets | May validation before June test | `X5_fixed + Random Forest`, June test R2 0.877, MAPE 12.90%, MdAPE 8.29% |
+| Advanced model comparison | XGBoost, LightGBM, CatBoost, Random Forest benchmark | balanced validation performance and train-validation stability | XGBoost, June test R2 0.911, MAPE 12.17%, MdAPE 8.46% |
 
-- Pipeline: `Random Forest`
-- May in-range R2: `0.876`
-- May in-range MAPE: `0.129`
-- May in-range MdAPE: `0.082`
-- June in-range R2: `0.877`
-- June in-range MAPE: `0.129`
-- June in-range MdAPE: `0.083`
+Final selected model:
 
-**Decision:**
+- model: XGBoost
+- max depth: 6
+- learning rate: 0.05
+- effective trees: 1,495
+- row sample: 0.85
+- feature sample: 0.85
+- L2 regularization: 1.0
 
-- The expanded X6 engineered features did not produce a meaningful validation improvement over `X5_fixed`.
-- School-district fields provided a small signal but require rolling-month confirmation and geospatial QA.
-- The Week 6 pipeline remains suitable for retrospective valuation QA and manual-review triage, not autonomous pricing.
+Random Forest had slightly lower June MdAPE than XGBoost, but XGBoost had stronger R2, lower dollar error, and a smaller train-to-validation deterioration pattern. That makes XGBoost the better final model for pricing-review balance.
 
-**Documentation:**
+## Segment Performance
 
-- [Week 6 Report](week6/week6_final_report_interpretation.md)
+June test-set price-band diagnostics:
 
-**Code:**
+| Price band | Rows | Median price | MAPE | MdAPE | P90 APE |
+|---|---:|---:|---:|---:|---:|
+| Q1 lowest | 2,483 | $451,500 | 14.33% | 8.95% | 33.92% |
+| Q2 | 2,354 | $688,944 | 10.30% | 6.79% | 24.11% |
+| Q3 | 2,434 | $900,000 | 10.64% | 7.49% | 22.79% |
+| Q4 | 2,581 | $1,285,000 | 11.94% | 8.80% | 25.08% |
+| Q5 highest | 2,714 | $2,220,000 | 13.39% | 10.88% | 28.06% |
 
-- [Week 6 Notebook](notebooks/05_feature_engineering_pipeline_selection.ipynb)
-- [Week 6 Pipeline Module](week6/week6_model_pipeline.py)
+Decision implication:
 
-## Week 7 Summary: Advanced Models
+- Q2 and Q3 are the most reliable pricing-review segments.
+- Q1 needs caution because small dollar misses create high percentage misses.
+- Q5 requires manual review because luxury and unusual properties have larger dollar risk.
 
-**Week 7 deliverables completed:**
+## Key Outputs
 
-- Reused the Week 3 quality-cleaned data and the Week 6 chronological modeling window.
-- Removed missingness indicators from modeling while retaining train-only frequency encoding.
-- Optimized the linear benchmark through separate OLS, Ridge, and Lasso X-set and penalty searches.
-- Tuned Decision Tree and Random Forest feature sets and structural hyperparameters.
-- Compared XGBoost, LightGBM, and CatBoost using:
-  - shallow depths from `3` to `6`
-  - early stopping
-  - row and feature subsampling
-  - minimum child-size controls
-  - L1/L2 regularization where supported
-- Evaluated 42 boosting configurations on May in-range validation only.
-- Locked the final model before the one-time June evaluation.
+| Output | Path |
+|---|---|
+| Cleaned modeling dataset | `outputs/week3_preprocessing/crmls_sfr_quality_cleaned_202501_202606.csv` |
+| Random Forest model artifact | `outputs/week5_model_comparison/week5_selected_model.joblib` |
+| Locked Random Forest pipeline | `outputs/week6_feature_engineering/week6_locked_pipeline.joblib` |
+| Deployment refit pipeline | `outputs/week6_feature_engineering/week6_deployment_pipeline_refit_through_june.joblib` |
+| Final evaluation metrics | `outputs/week8_evaluation/metrics_summary.csv` |
+| Final XGBoost June predictions | `outputs/week8_evaluation/week8_xgboost_june_predictions.csv` |
 
-**Selected Week 7 model:**
+## Repository Map
 
-- Model: `XGBoost`
-- May in-range R2: `0.908`
-- May in-range MAPE: `0.122`
-- May in-range MdAPE: `0.084`
-- June in-range R2: `0.911`
-- June in-range MAPE: `0.122`
-- June in-range MdAPE: `0.085`
+| Folder | Purpose |
+|---|---|
+| `data/` | Raw CRMLS files and external school-district data |
+| `notebooks/` | Main reproducible notebooks for exploration, preprocessing, baseline, comparison, and feature engineering |
+| `week7/` | Advanced-model report, notebook, and helper module |
+| `week8/` | Final evaluation notebook and summary |
+| `scripts/` | Notebook builders and reusable modeling/evaluation scripts |
+| `outputs/` | Cleaned data, model artifacts, metrics, predictions, figures |
+| `plan/` | Internship plan and project reference PDFs |
 
-**Decision:**
+## How To Re-run
 
-- XGBoost was selected using a May-only balanced promotion rule rather than MdAPE alone.
-- Compared with Random Forest, XGBoost materially improved R2 and reduced the apparent train-to-May gap while keeping MAPE and MdAPE penalties inside explicit tolerances.
-- June confirmed the stronger R2 and dollar-error performance; Random Forest remains a monitoring benchmark for median percentage error.
-- The final model supports pricing review and valuation triage. Tail-risk and unusual properties still require manual comparable-sale analysis.
+Run from the repository root:
 
-**Documentation:**
+```bash
+cd "/Users/amyliu/Desktop/summer intern"
+python3 -m venv .venv
+source .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install pandas numpy scikit-learn joblib xgboost lightgbm catboost matplotlib seaborn notebook
+```
 
-- [Week 7 Advanced Models Report](week7/05_advanced_models.md)
+Rebuild the main scripted artifacts:
 
-**Code:**
+```bash
+python scripts/build_week3_preprocessing_deliverable.py
+python scripts/build_week6_feature_engineering_notebook.py
+python scripts/build_week7_advanced_models_notebook.py
+python scripts/build_week8_evaluation_notebook.py
+python scripts/week8_evaluation.py
+```
 
-- [Week 7 Notebook](week7/05_advanced_models_updated.ipynb)
+Open notebooks:
 
+```bash
+jupyter notebook
+```
+
+Recommended notebook review order:
+
+1. `notebooks/01_exploration.ipynb`
+2. `notebooks/02_preprocessing.ipynb`
+3. `notebooks/03_baseline_model.ipynb`
+4. `notebooks/04_model_comparison.ipynb`
+5. `notebooks/05_feature_engineering_pipeline_selection.ipynb`
+6. `week7/05_advanced_models_updated.ipynb`
+7. `week8/06_evaluation.ipynb`
+
+## App Instructions
+
+No Streamlit app file is currently present in this repository. Do not claim an app deliverable until an app entry point exists.
+
+If a Streamlit app is added later, it should meet this minimum contract:
+
+- load a saved trained pipeline or model artifact,
+- accept property inputs,
+- return a predicted close price,
+- show the main explanation drivers,
+- document the model version and limitations.
+
+Expected launch command after an app exists:
+
+```bash
+streamlit run app.py
+```
+
+## Dashboard Status
+
+No Tableau workbook (`.twb` or `.twbx`) is currently present in the workspace. Dashboard work should be documented separately when the workbook exists.
+
+Required dashboard questions:
+
+- Price distribution: where are typical and high-risk pricing ranges?
+- Market activity: how do DOM and transaction volume vary by segment?
+- Geographic segmentation: which ZIP, city, county, or school-district groups differ materially?
+
+Each dashboard should answer one business question and map to one pricing or allocation decision.
+
+## Assumptions
+
+- CRMLS sold data is the authoritative source for this internship project.
+- Chronological validation is required because real estate data shifts over time.
+- The primary June test set is the main benchmark used for model reporting.
+- Full June is shown separately as a robustness check because it includes more unusual records and is not the main model-selection basis.
+- Price-band diagnostics are retrospective because they use realized `ClosePrice`.
+
+## Limitations
+
+- Only one validation month and one final test month are used in the final advanced-model readout.
+- Frequency encoding captures category prevalence, not true neighborhood price level.
+- School-district enrichment needs additional geospatial QA before production use.
+- Luxury, low-price, and unusual properties remain higher-risk segments.
+- The model predicts sold close price, not a guaranteed listing-time value.
+- Feature importance is model-behavior evidence, not causal evidence.
+
+## Final Decision
+
+The final model is XGBoost. It should be used as a decision-support tool for pricing review, valuation QA, and manual-review triage. It should not be used to set final listing prices without human review and comparable-sale analysis.
