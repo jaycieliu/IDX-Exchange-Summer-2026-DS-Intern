@@ -8,7 +8,7 @@ The model should be used as a pricing-review tool, not as an automatic pricing d
 
 **Main result:** on the primary June 2026 test set, the final model explained most of the price variation and had a typical prediction error of about **8.5%**.
 
-| Evaluation view | Homes reviewed | Overall fit | Average error | Typical error |
+| Evaluation view | Homes reviewed | R^2 | Average error | Typical error |
 |---|---:|---:|---:|---:|
 | Main June test set | 12,566 | 0.911 | 12.17% | 8.46% |
 | Full June robustness check | 12,851 | 0.678 | 13.81% | 8.67% |
