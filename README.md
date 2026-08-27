@@ -1,159 +1,151 @@
-# California Residential Close Price Prediction
+# California Residential Price Prediction
 
-## Abstract
+## Executive Summary
 
-Use the final XGBoost model for pricing review and valuation triage, not automatic pricing. On the primary June 2026 test set, the model achieved:
+This project built a model to estimate the final sale price of California single-family homes using historical CRMLS sold-property data.
 
-| Population | Rows | R2 | MAPE | MdAPE |
+The model should be used as a pricing-review tool, not as an automatic pricing decision. It is strongest for typical middle-market homes and weaker for unusual, very low-price, or luxury properties.
+
+**Main result:** on the primary June 2026 test set, the final model explained most of the price variation and had a typical prediction error of about **8.5%**.
+
+| Evaluation view | Homes reviewed | Overall fit | Average error | Typical error |
 |---|---:|---:|---:|---:|
-| June test set | 12,566 | 0.911 | 12.17% | 8.46% |
-| Full June robustness | 12,851 | 0.678 | 13.81% | 8.67% |
+| Main June test set | 12,566 | 0.911 | 12.17% | 8.46% |
+| Full June robustness check | 12,851 | 0.678 | 13.81% | 8.67% |
 
-**Decision implication:** 
-    The model is useful for flagging pricing reasonableness on typical homes, especially middle-price segments. Low-price outliers, luxury homes, and unusual properties still require manual comparable-sale review.
+Plain-English interpretation:
 
-## Business Objective
+- **Overall fit 0.911** means the model captured most of the pricing pattern in the main test group.
+- **Average error 12.17%** means some hard cases still create larger misses.
+- **Typical error 8.46%** is the better summary for what a normal prediction miss looks like.
+- The full June check performs worse because it includes more unusual properties. Those should be reviewed manually.
 
-Predict `ClosePrice` for California CRMLS sold single-family residential properties so real estate teams can support:
+## Business Use
 
-- pricing review before or after close,
-- listing strategy and valuation QA,
-- geographic and price-segment demand allocation,
-- manual-review prioritization for high-risk properties.
+The model is useful for:
 
-Every modeling step is evaluated against decision usefulness, not only technical score improvement.
+- checking whether a sale price looks reasonable,
+- flagging homes that may need manual review,
+- comparing pricing risk across price ranges,
+- supporting agent or analyst valuation review.
 
-## Dataset Source
+The model is not appropriate for:
 
-Primary source: CRMLS sold property exports stored locally under:
+- setting final listing prices by itself,
+- replacing comparable-sale analysis,
+- making high-stakes pricing decisions without human review,
+- pricing luxury or unusual homes without extra judgment.
 
-- `data/raw data/CRMLSSoldYYYYMM.csv`
-- `data/california/CRMLSSoldYYYYMM.csv`
+## Data Used
 
-External enrichment:
+The project uses California CRMLS sold-property records. Each record describes a closed sale, including property size, bedrooms, bathrooms, lot information, location, listing timing, and final close price.
 
-- `data/external/california_school_district_areas_2025_26.geojson`
+Only this property type was included:
 
-Scope restriction:
+- Residential
+- Single-family residence
+- California sold transactions
 
-- `PropertyType = Residential`
-- `PropertySubType = SingleFamilyResidence`
-- California sold records only
-- target variable: `ClosePrice`
+School-district boundary data was added to give the model more location context. This helps the model understand that nearby properties can belong to different school-district areas, which may affect pricing behavior.
 
-The final cleaned modeling dataset is:
+## How The Data Was Prepared
 
-- `outputs/week3_preprocessing/crmls_sfr_quality_cleaned_202501_202606.csv`
+The raw monthly property files were cleaned and combined into one modeling dataset.
 
-## Preprocessing
+Main preparation steps:
 
-The preprocessing workflow is implemented in `notebooks/02_preprocessing.ipynb` and supported by `scripts/build_week3_preprocessing_deliverable.py`.
+1. Kept only California residential single-family sold homes.
+2. Removed or flagged records with invalid price or property values.
+3. Filled missing values using rules learned from the training data.
+4. Converted location and category fields into model-ready values.
+5. Added school-district information using property location.
+6. Split the data by time so the model was tested on future months, not random rows.
 
-Main steps:
+The time-based split is important. Real estate markets change over time, so the model must prove that it works on later sales, not just on homes from the same period it learned from.
 
-1. Load and combine monthly CRMLS sold files.
-2. Filter to Residential / SingleFamilyResidence records.
-3. Parse dates and create `close_month`.
-4. Validate `ClosePrice` and key property fields.
-5. Handle missing values with train-fitted logic instead of blind row removal.
-6. Create quality flags for unusual or invalid values.
-7. Add school-district enrichment.
-8. Build chronological train, validation, and test datasets.
+## What The Model Looks At
 
-Final modeling window:
+The model uses practical pricing signals:
 
-| Split | Period | Purpose |
+- home size,
+- lot size,
+- bedrooms and bathrooms,
+- property age,
+- parking and garage information,
+- location,
+- ZIP code, city, county, and school-district context,
+- amenities such as pool, view, fireplace, and new construction,
+- seasonality based on closing month.
+
+Fields that could leak the answer were excluded. For example, the model should not rely on values that directly reveal or are derived from the final close price.
+
+## Models Compared
+
+The project compared simple and more advanced models to make sure the final result was truly better than a basic benchmark.
+
+| Model type | What it showed | Result |
 |---|---|---|
-| Train | 2025-02 to 2026-04 | Fit preprocessing and models |
-| Validation | 2026-05 | Select model / hyperparameters |
-| Test | 2026-06 | Final locked evaluation |
+| Linear regression | Simple baseline; useful for comparison but not accurate enough | Typical error about 25% |
+| Decision tree / Random Forest | Much stronger pricing pattern detection | Random Forest typical error about 8.3% |
+| Gradient boosting models | Best overall balance of accuracy and stability | XGBoost selected as final model |
 
-Important rule: imputation, scaling, frequency encoding, feature selection, and outlier bounds are fit on training data only, then applied unchanged to validation and test.
+The final model was selected because it had the best balance of:
 
-## Features
+- strong overall fit,
+- lower dollar error,
+- acceptable typical percentage error,
+- better stability from validation to final testing.
 
-The final advanced-model feature set keeps interpretable price drivers:
+## Where The Model Works Best
 
-- property size: living area, lot size, bedroom and bathroom counts,
-- property structure: age, stories, garage and parking fields,
-- ratios: bed/bath ratio and living-area-to-lot ratio,
-- geography: city, ZIP, county, latitude, longitude,
-- school-district context: district name, county, locale, enrollment, area, density,
-- amenities: pool, view, fireplace, attached garage, new construction,
-- seasonality: close-month sine and cosine.
+The model performs best on middle-price homes. These are the homes where it is most useful for pricing review.
 
-Target-derived and sale-process leakage fields are excluded from modeling. Examples include `ClosePrice`, direct close-price ratios, and fields that would not be available at listing-time prediction.
+| Price range group | Homes reviewed | Median sale price | Average error | Typical error |
+|---|---:|---:|---:|---:|
+| Lowest-price group | 2,483 | $451,500 | 14.33% | 8.95% |
+| Lower-middle group | 2,354 | $688,944 | 10.30% | 6.79% |
+| Middle group | 2,434 | $900,000 | 10.64% | 7.49% |
+| Upper-middle group | 2,581 | $1,285,000 | 11.94% | 8.80% |
+| Highest-price group | 2,714 | $2,220,000 | 13.39% | 10.88% |
 
-## Modeling Approach
+Key takeaways:
 
-The project started with an interpretable linear baseline, then tested tree-based models and gradient-boosted models. Selection used chronological validation before final testing to reduce look-ahead bias.
+1. **Middle-price homes are the best use case.** The lower-middle and middle groups have the lowest typical errors.
+2. **Lowest-price homes need caution.** A smaller dollar miss can become a large percentage miss.
+3. **Highest-price homes need manual review.** Luxury and unusual homes are harder to estimate reliably.
 
-| Modeling step | Models | Selection basis | Best result |
-|---|---|---|---|
-| Linear baseline | Linear Regression | chronological test metrics | R2 0.641, MAPE 34.60%, MdAPE 25.13% |
-| Tree-based comparison | Linear Regression, Decision Tree, Random Forest | validation MdAPE, then MAPE, then R2 | Random Forest, test R2 0.878, MAPE 12.82%, MdAPE 8.32% |
-| Feature-engineered pipeline comparison | 13 full pipelines using fixed and engineered feature sets | May validation before June test | `X5_fixed + Random Forest`, June test R2 0.877, MAPE 12.90%, MdAPE 8.29% |
-| Advanced model comparison | XGBoost, LightGBM, CatBoost, Random Forest benchmark | balanced validation performance and train-validation stability | XGBoost, June test R2 0.911, MAPE 12.17%, MdAPE 8.46% |
+## Recommendation
 
-Final selected model:
+Use the model as a first-pass pricing review system:
 
-- model: XGBoost
-- max depth: 6
-- learning rate: 0.05
-- effective trees: 1,495
-- row sample: 0.85
-- feature sample: 0.85
-- L2 regularization: 1.0
+1. Score a property or group of properties.
+2. Flag homes where the predicted price and actual/listed price are far apart.
+3. Prioritize flagged homes for analyst or agent review.
+4. Use comparable sales and local market judgment before making a final pricing decision.
 
-Random Forest had slightly lower June MdAPE than XGBoost, but XGBoost had stronger R2, lower dollar error, and a smaller train-to-validation deterioration pattern. That makes XGBoost the better final model for pricing-review balance.
+This is the right level of use because the model is accurate enough to support review, but not reliable enough to replace expert pricing judgment.
 
-## Segment Performance
+## Main Limitations
 
-June test-set price-band diagnostics:
+- The model was evaluated on one final test month, so additional future-month testing is needed.
+- Location is represented through available fields and school-district context, but it does not fully replace neighborhood expertise.
+- Luxury, unusual, and very low-price properties have higher risk.
+- The model predicts historical final sale price, not guaranteed listing price.
+- School-district enrichment is useful, but should receive additional quality checks before production use.
 
-| Price band | Rows | Median price | MAPE | MdAPE | P90 APE |
-|---|---:|---:|---:|---:|---:|
-| Q1 lowest | 2,483 | $451,500 | 14.33% | 8.95% | 33.92% |
-| Q2 | 2,354 | $688,944 | 10.30% | 6.79% | 24.11% |
-| Q3 | 2,434 | $900,000 | 10.64% | 7.49% | 22.79% |
-| Q4 | 2,581 | $1,285,000 | 11.94% | 8.80% | 25.08% |
-| Q5 highest | 2,714 | $2,220,000 | 13.39% | 10.88% | 28.06% |
+## App Status
 
-Decision implication:
+A Streamlit prediction app is not currently included in this repository.
 
-- Q2 and Q3 are the most reliable pricing-review segments.
-- Q1 needs caution because small dollar misses create high percentage misses.
-- Q5 requires manual review because luxury and unusual properties have larger dollar risk.
+If an app is added, it should let a user enter basic property details, return a predicted price, and show a short explanation of the main drivers. It should also clearly state that the output is for pricing review only.
 
-## Key Outputs
+Expected launch command after an app exists:
 
-| Output | Path |
-|---|---|
-| Cleaned modeling dataset | `outputs/week3_preprocessing/crmls_sfr_quality_cleaned_202501_202606.csv` |
-| Random Forest model artifact | `outputs/week5_model_comparison/week5_selected_model.joblib` |
-| Locked Random Forest pipeline | `outputs/week6_feature_engineering/week6_locked_pipeline.joblib` |
-| Deployment refit pipeline | `outputs/week6_feature_engineering/week6_deployment_pipeline_refit_through_june.joblib` |
-| Final evaluation metrics | `outputs/week8_evaluation/metrics_summary.csv` |
-| Final XGBoost June predictions | `outputs/week8_evaluation/week8_xgboost_june_predictions.csv` |
+```bash
+streamlit run app.py
+```
 
-
-## Assumptions
-
-- CRMLS sold data is the authoritative source for this internship project.
-- Chronological validation is required because real estate data shifts over time.
-- The primary June test set is the main benchmark used for model reporting.
-- Full June is shown separately as a robustness check because it includes more unusual records and is not the main model-selection basis.
-- Price-band diagnostics are retrospective because they use realized `ClosePrice`.
-
-## Limitations
-
-- Only one validation month and one final test month are used in the final advanced-model readout.
-- Frequency encoding captures category prevalence, not true neighborhood price level.
-- School-district enrichment needs additional geospatial QA before production use.
-- Luxury, low-price, and unusual properties remain higher-risk segments.
-- The model predicts sold close price, not a guaranteed listing-time value.
-- Feature importance is model-behavior evidence, not causal evidence.
 
 ## Final Decision
 
-The final model is XGBoost. It should be used as a decision-support tool for pricing review, valuation QA, and manual-review triage. It should not be used to set final listing prices without human review and comparable-sale analysis.
+The final XGBoost model is suitable for pricing review, valuation quality checks, and manual-review prioritization. It should not be used as a standalone pricing engine.
