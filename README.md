@@ -95,6 +95,10 @@ The final model was selected because it had the best balance of:
 - lower dollar error,
 - acceptable typical percentage error,
 - better stability from validation to final testing.
+  
+## Final Decision
+
+The final XGBoost model is suitable for pricing review, valuation quality checks, and manual-review prioritization. It should not be used as a standalone pricing engine.
 
 ## Where The Model Works Best
 
@@ -133,15 +137,49 @@ This is the right level of use because the model is accurate enough to support r
 - The model predicts historical final sale price, not guaranteed listing price.
 - School-district enrichment is useful, but should receive additional quality checks before production use.
 
-## App Status
+## Interactive Web Demo
 
-A Streamlit prediction app is in week 9 fold.
+A Streamlit web dashboard is included to make the project easier to review and present. The app is designed for a mentor, manager, or stakeholder who wants to understand the model result without reading the notebooks.
+
+The app includes six views:
+
+| View | What it shows | Why it matters |
+|---|---|---|
+| Overview | Main model result, key error metrics, and business interpretation | Gives a quick executive readout |
+| Predict | A simple price-estimation form using living area, beds, baths, lot size, and optional location fields | Demonstrates how a user could test one property |
+| Geographic Analysis | County and city-level error summaries from the June test results | Shows where predictions may need more review |
+| Market Trends | Monthly sales volume, median sale price, and median price per square foot | Gives market context around the model |
+| Model Performance | Error comparison across price ranges | Explains where the model is strongest and weakest |
+| Handoff | Run instructions and production cautions | Documents what is needed for future use |
+
+To open the app locally:
 
 ```bash
+source .venv/bin/activate
 streamlit run app.py
 ```
 
+Then open:
 
-## Final Decision
+```text
+http://127.0.0.1:8501
+```
 
-The final XGBoost model is suitable for pricing review, valuation quality checks, and manual-review prioritization. It should not be used as a standalone pricing engine.
+### Demo Scope
+
+The app runs locally only. It is served at `http://127.0.0.1:8501`, which is reachable from this computer and from no other device. There is no public deployment.
+
+To let another person on the same network open it, bind to all interfaces and share the Network URL that Streamlit prints at startup:
+
+```bash
+streamlit run app.py --server.address 0.0.0.0
+```
+
+Publishing the app to a public URL would first require replacing raw CRMLS-level records with aggregated, non-personal data. The cleaned dataset contains agent names, agent email addresses, and street addresses tied to sale prices, and it is licensed MLS data.
+
+### Model Used In The App
+
+The prediction page uses the saved trained Random Forest pipeline artifact because that is the deployable joblib model currently available in the repository.
+
+The main project conclusion still uses XGBoost as the best final model based on the June evaluation. A production version should save and deploy the final XGBoost artifact so the app and report use the same model.
+
