@@ -135,11 +135,7 @@ This is the right level of use because the model is accurate enough to support r
 
 ## App Status
 
-A Streamlit prediction app is not currently included in this repository.
-
-If an app is added, it should let a user enter basic property details, return a predicted price, and show a short explanation of the main drivers. It should also clearly state that the output is for pricing review only.
-
-Expected launch command after an app exists:
+A Streamlit prediction app is in week 9 fold.
 
 ```bash
 streamlit run app.py
