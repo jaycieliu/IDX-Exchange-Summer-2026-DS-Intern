@@ -9,7 +9,8 @@ Use the final XGBoost model for pricing review and valuation triage, not automat
 | June test set | 12,566 | 0.911 | 12.17% | 8.46% |
 | Full June robustness | 12,851 | 0.678 | 13.81% | 8.67% |
 
-Decision implication: the model is useful for flagging pricing reasonableness on typical homes, especially middle-price segments. Low-price outliers, luxury homes, and unusual properties still require manual comparable-sale review.
+**Decision implication:** 
+    The model is useful for flagging pricing reasonableness on typical homes, especially middle-price segments. Low-price outliers, luxury homes, and unusual properties still require manual comparable-sale review.
 
 ## Business Objective
 
